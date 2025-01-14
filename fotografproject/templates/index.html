@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manzara Fotoğrafları </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            color: #333;
+        }
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        td {
+            vertical-align: top;
+        }
+        img {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            border-radius: 5px;
+        }
+        ul {
+            padding: 0;
+            margin: 20px auto;
+            list-style-type: none;
+            width: 90%;
+            text-align: left;
+        }
+        li {
+            background: #f1f1f1;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Manzara Fotoğrafları Tablosu</h1>
+
+    <table>
+        <tr>
+            {% for image in images %}
+                <td>
+                    <img src="{{ image['webformatURL'] }}" alt="{{ image['tags'] }}">
+                    <p><strong>Etiketler:</strong> {{ image['tags'] }}</p>
+                </td>
+                {% if loop.index % 3 == 0 %}
+                    </tr><tr>
+                {% endif %}
+            {% endfor %}
+        </tr>
+    </table>
+
+    
+</body>
+</html>
