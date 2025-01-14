@@ -1,5 +1,5 @@
 Fotograf Project
-Bu proje, Pixabay API'si aracılığıyla manzara fotoğrafları çeker ve bu fotoğrafları MinIO (yerel bir nesne depolama sunucusu) ile depolar. Ayrıca, projede yer alan fotoğraflar, Flask tabanlı bir web uygulamasında kullanıcıya sunulur.
+Bu proje, ... API'si aracılığıyla manzara fotoğrafları çeker ve bu fotoğrafları MinIO (yerel bir nesne depolama sunucusu) ile depolar. Ayrıca, projede yer alan fotoğraflar, Flask tabanlı bir web uygulamasında kullanıcıya sunulur.
 
 Özellikler
 Pixabay API'si kullanarak manzara fotoğraflarını arar ve getirir.
