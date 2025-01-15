@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manzara Fotoğrafları </title>
+    <title>Manzara Fotoğrafları</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -56,22 +56,23 @@
     </style>
 </head>
 <body>
-    <h1>Manzara Fotoğrafları Tablosu</h1>
+    <h1>Manzara Fotoğrafları</h1>
 
     <table>
-        <tr>
+        <thead>
+            <tr>
+                <th>Fotoğraf</th>
+                <th>Etiketler</th>
+            </tr>
+        </thead>
+        <tbody>
             {% for image in images %}
-                <td>
-                    <img src="{{ image['webformatURL'] }}" alt="{{ image['tags'] }}">
-                    <p><strong>Etiketler:</strong> {{ image['tags'] }}</p>
-                </td>
-                {% if loop.index % 3 == 0 %}
-                    </tr><tr>
-                {% endif %}
+            <tr>
+                <td><img src="{{ image.minio_url }}" alt="Image"></td>
+                <td>{{ image.tags }}</td>
+            </tr>
             {% endfor %}
-        </tr>
+        </tbody>
     </table>
-
-    
 </body>
 </html>
