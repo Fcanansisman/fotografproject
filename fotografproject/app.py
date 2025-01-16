@@ -6,8 +6,8 @@ app = Flask(__name__)
 # Ana sayfa
 @app.route('/')
 def index():
-    # Sabit sorgu kelimesi: "wallpaper"
-    query = 'wallpaper'
+    # Birden fazla anahtar kelime (query) kullanarak resimler çekmek
+    query = 'wallpaper beautiful flower'  
     
     # Fotoğrafları çek
     result = fetch_images(query, per_page=20, max_pages=1)

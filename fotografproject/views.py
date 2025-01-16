@@ -1,22 +1,15 @@
-from flask import Flask, render_template
+import random
 import requests
 from minio import Minio
 from io import BytesIO
-
-app = Flask(__name__)
-
-# Pixabay API Anahtarı
-API_KEY = '48202519-2adc2007eb6344bb9de46c0f1'
-
-# API URL'si
-URL = "https://pixabay.com/api/"
+from config import Config  # config.py dosyasındaki ayarları import ediyoruz
 
 # MinIO client ayarları
 client = Minio(
-    "localhost:9000",  # MinIO'nun adresi
-    access_key="minioadmin",  # MinIO access key
-    secret_key="minioadmin",  # MinIO secret key
-    secure=False  # HTTPS kullanmıyorsanız False
+    Config.MINIO_HOST,  # MinIO'nun adresi
+    access_key=Config.MINIO_ACCESS_KEY,  # MinIO access key
+    secret_key=Config.MINIO_SECRET_KEY,  # MinIO secret key
+    secure=Config.MINIO_SECURE  # HTTPS kullanmıyorsanız False
 )
 
 # Daha önce yüklenen fotoğrafların URL'lerini saklamak için bir set
@@ -31,7 +24,7 @@ def upload_image_to_minio(image_url, image_name):
 
         # Fotoğrafı MinIO'ya yükle
         client.put_object(
-            "fotograf-bucket",  # Bucket adı
+            Config.MINIO_BUCKET_NAME,  # Bucket adı
             image_name,  # Fotoğrafın adı
             img_data,  # Fotoğraf verisi
             len(response.content)  # Fotoğraf boyutu
@@ -45,54 +38,61 @@ def get_first_two_words(tags):
     return ' '.join(tags.split()[:2])  # İlk iki kelimeyi al ve birleştir
 
 # Pixabay API'den fotoğraf çekme fonksiyonu
-def fetch_images(query, per_page=200, max_pages=1):
+def fetch_images(query, per_page=20, max_pages=1):
     all_images = []  # Tüm fotoğrafları tutacak liste
 
-    for page in range(1, max_pages + 1):
-        params = {
-            'key': API_KEY,
-            'q': query,
-            'image_type': 'photo',
-            'per_page': per_page,
-            'page': page,
-            'orientation': 'horizontal'
-        }
+    # Sayfa numarasını rastgele seç
+    page_number = random.randint(1, 5)  # 1 ile 5 arasında rastgele bir sayfa numarası
 
-        response = requests.get(URL, params=params)
-        print("API Yanıtı:", response.text)
+    params = {
+        'key': Config.API_KEY,
+        'q': query,
+        'image_type': 'photo',
+        'per_page': per_page,
+        'page': page_number,
+        'orientation': 'horizontal'
+    }
 
-        if response.status_code == 200:
-            try:
-                data = response.json()  # JSON verisini döndür
-                print(f"Toplam Resim Sayısı: {data['totalHits']}")
+    response = requests.get(Config.URL, params=params)
+    print("API Yanıtı:", response.text)
 
-                if data['totalHits'] == 0:
-                    print("Yeni resimler bulunamadı.")
-                    break
+    if response.status_code == 200:
+        try:
+            data = response.json()  # JSON verisini döndür
+            print(f"Toplam Resim Sayısı: {data['totalHits']}")
 
-                for image in data['hits']:
-                    image_url = image['largeImageURL']
+            if data['totalHits'] == 0:
+                print("Yeni resimler bulunamadı.")
+                return []
 
-                    if image_url in uploaded_images:
-                        continue  # Zaten yüklendiyse atla
+            for image in data['hits']:
+                image_url = image['largeImageURL']
 
-                    uploaded_images.add(image_url)  # Fotoğrafı ekle
+                if image_url in uploaded_images:
+                    continue  # Zaten yüklendiyse atla
 
-                    image_name = image_url.split('/')[-1]  # Fotoğraf adını oluştur
-                    upload_image_to_minio(image_url, image_name)  # Yükle
+                uploaded_images.add(image_url)  # Fotoğrafı ekle, bu URL'nin bir daha işlenmesini engeller.
 
-                    minio_url = f"http://localhost:9000/fotograf-bucket/{image_name}"
+                image_name = image_url.split('/')[-1]  # Fotoğraf adını oluştur
+                upload_image_to_minio(image_url, image_name)  # Yükle
 
-                    image['tags'] = get_first_two_words(image['tags'])  # Etiketleri işle
+                minio_url = f"http://{Config.MINIO_HOST}/{Config.MINIO_BUCKET_NAME}/{image_name}"
 
-                    all_images.append({
-                        'minio_url': minio_url,
-                        'tags': image['tags']
-                    })
-            except ValueError:
-                print("JSON hatası oluştu.")
-        else:
-            print(f"Hata: {response.status_code}")
-            break
+                image['tags'] = get_first_two_words(image['tags'])  # Etiketleri işle
+
+                # Her resme benzersiz bir ID ekleyelim (image_url'yi ID olarak kullanabiliriz)
+                all_images.append({
+                    'minio_url': minio_url,
+                    'tags': image['tags'],
+                    'id': image_url  # ID olarak URL kullanılıyor
+                })
+
+        except ValueError:
+            print("JSON hatası oluştu.")
+    else:
+        print(f"Hata: {response.status_code}")
+
+    # Resimleri 'id' (image_url) değerine göre sıralıyoruz
+    all_images = sorted(all_images, key=lambda x: x['id'])
 
     return all_images  # Tüm fotoğrafları döndür
